@@ -22,14 +22,14 @@ from bpy.types import Operator
 
 class ImportSomeData(Operator, ImportHelper):
     """This appears in the tooltip of the operator and in the generated docs"""
-    bl_idname = "import_test.some_data"  # important since its how bpy.ops.import_test.some_data is constructed
+    bl_idname = "plotrock.import_csv"  # important since its how bpy.ops.plotrock.import_csv is constructed
     bl_label = "Import Some Data"
 
     # ImportHelper mixin class uses this
-    filename_ext = ".txt"
+    filename_ext = ".csv"
 
     filter_glob: StringProperty(
-        default="*.txt",
+        default="*.csv;*.txt",
         options={'HIDDEN'},
         maxlen=255,  # Max internal buffer length, longer would be clamped.
     )
@@ -37,17 +37,17 @@ class ImportSomeData(Operator, ImportHelper):
     # List of operator properties, the attributes will be assigned
     # to the class instance from the operator settings before calling.
     use_setting: BoolProperty(
-        name="Example Boolean",
-        description="Example Tooltip",
+        name="Has Headers",
+        description="Select this option if first row is a header.",
         default=True,
     )
 
     type: EnumProperty(
-        name="Example Enum",
-        description="Choose between two items",
+        name="Deliminator",
+        description="Choose deliminator used in file (typically a comma)",
         items=(
-            ('OPT_A', "First Option", "Description one"),
-            ('OPT_B', "Second Option", "Description two"),
+            ('OPT_A', ", Comma", "Items seperated by comma"),
+            ('OPT_B', "; Semicolon", "Items seperated by semicolon"),
         ),
         default='OPT_A',
     )
@@ -58,7 +58,7 @@ class ImportSomeData(Operator, ImportHelper):
 
 # Only needed if you want to add into a dynamic menu
 def menu_func_import(self, context):
-    self.layout.operator(ImportSomeData.bl_idname, text="Text Import Operator")
+    self.layout.operator(ImportSomeData.bl_idname, text="Import CSV for plotting (.csv, .txt)")
 
 
 def register():
@@ -75,4 +75,4 @@ if __name__ == "__main__":
     register()
 
     # test call
-    bpy.ops.import_test.some_data('INVOKE_DEFAULT')
+    bpy.ops.plotrock.import_csv('INVOKE_DEFAULT')
