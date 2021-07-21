@@ -1,9 +1,3 @@
-bl_info = {
-    "name": "PlotRock",
-    "blender": (2, 80, 0),
-    "category": "Object",
-}
-
 import bpy
 
 num_data = [
