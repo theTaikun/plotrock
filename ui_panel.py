@@ -5,9 +5,10 @@ class LayoutDemoPanel(bpy.types.Panel):
     """Creates a Panel in the scene context of the properties editor"""
     bl_label = "Layout Demo"
     bl_idname = "SCENE_PT_layout"
-    bl_space_type = 'PROPERTIES'
-    bl_region_type = 'WINDOW'
-    bl_context = "scene"
+    bl_space_type = 'VIEW_3D'
+    bl_region_type = 'UI'
+    bl_context = ""
+    bl_category = "RockPlot"
 
     def draw(self, context):
         layout = self.layout
