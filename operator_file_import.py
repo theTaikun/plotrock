@@ -10,6 +10,11 @@ def read_some_data(context, filepath, use_some_setting):
     # would normally load the data here
     print(data)
 
+    # Load csv into internal memory
+    # shows up in text editor
+    csv_mem = bpy.data.texts.new("imported_csv")
+    csv_mem.write(data)
+
     return {'FINISHED'}
 
 
