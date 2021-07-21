@@ -5,7 +5,7 @@ bl_info = {
     "category": "Object",
 }
 
-modulesNames = ['plotrock', 'operator_file_import']
+modulesNames = ['plotrock', 'operator_file_import', 'ui_panel']
 
 
 import sys
