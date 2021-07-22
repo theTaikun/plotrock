@@ -3,8 +3,8 @@ import bpy
 
 class LayoutDemoPanel(bpy.types.Panel):
     """Creates a Panel in the scene context of the properties editor"""
-    bl_label = "Layout Demo"
-    bl_idname = "SCENE_PT_layout"
+    bl_label = "RockPlot Settings"
+    bl_idname = "OBJECT_PT_layout"
     bl_space_type = 'VIEW_3D'
     bl_region_type = 'UI'
     bl_context = ""
@@ -13,6 +13,7 @@ class LayoutDemoPanel(bpy.types.Panel):
     def draw(self, context):
         layout = self.layout
 
+        """ Original Template Inputs for reference
         scene = context.scene
 
         # Create a simple row.
@@ -60,7 +61,19 @@ class LayoutDemoPanel(bpy.types.Panel):
         sub.operator("render.render")
 
         row.operator("render.render")
+        """
 
+        # CSV Import Button
+        layout.label(text="Import/Re-import CSV")
+        row = layout.row()
+        row.scale_y = 2.0
+        row.operator("plotrock.import_csv")
+
+        # Big plot button
+        layout.label(text="Plot!")
+        row = layout.row()
+        row.scale_y = 3.0
+        row.operator("object.plotrock")
 
 def register():
     bpy.utils.register_class(LayoutDemoPanel)
