@@ -70,10 +70,10 @@ class LayoutDemoPanel(bpy.types.Panel):
         row.operator("plotrock.import_csv")
 
         # Big plot button
-        layout.label(text="Plot!")
+        layout.label(text="Plot data from modified CSV")
         row = layout.row()
         row.scale_y = 3.0
-        row.operator("object.plotrock")
+        row.operator("plotrock.update_plot")
 
 def register():
     bpy.utils.register_class(LayoutDemoPanel)
