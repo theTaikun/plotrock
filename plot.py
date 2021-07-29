@@ -3,7 +3,18 @@ import bpy
 # TODO: check if new data same as old,
 #       if so, don't go through update process
 
-class Plot:
+def convertData(csv_textdata):
+    from io import StringIO
+    import csv
+    print("converting data")
+    raw_data = csv_textdata.as_string()
+    reader = csv.reader(StringIO(raw_data)) # read csv string as csv file
+    string_list = list(reader)
+    pos_list = [list(map(float, x)) for x in string_list] # convert list of strings to list of floats
+    return pos_list
+
+
+class NewPlot:
     """"
     bl_idname = "plotrock.plot"
     bl_label = "Create Simple Plot"         # Display name in the interface.
@@ -20,11 +31,11 @@ class Plot:
         #self.report({"ERROR"}, "error mes")
         #self.report({"INFO"}, "info mes")
         print("plotting")
-        self.csv_data = args.get("csv_data")
+        self.csv_textdata = args.get("csv_textdata")
         self.filepath= args.get("filepath")
         self.has_headers = args.get("has_headers")
         self.deliminator = args.get("deliminator")
-        self.convertData()
+        self.pos_list = convertData(self.csv_textdata)
         if self.obj is None:
             print("no class obj")
             self.create_obj()
@@ -41,16 +52,7 @@ class Plot:
         spline.points.add(len(coords_list) -1 )
         for i, val in enumerate(coords_list):
             spline.points[i].co = (val + [2.0] + [1.0])
-        self.crv.plotrock_csv = self.csv_data
-
-    def convertData(self):
-        from io import StringIO
-        import csv
-        print("converting data")
-        raw_data = self.csv_data.as_string()
-        reader = csv.reader(StringIO(raw_data)) # read csv string as csv file
-        string_list = list(reader)
-        self.pos_list = [list(map(float, x)) for x in string_list] # convert list of strings to list of floats
+        self.crv.plotrock_csv = self.csv_textdata
 
     def create_obj(self):
         print("create new obj")
@@ -63,7 +65,7 @@ class Plot:
         self.obj = bpy.data.objects.new('object_name', crv)
         bpy.data.scenes[0].collection.objects.link(self.obj)
 
-class updatePlot(bpy.types.Operator):
+class UpdatePlot(bpy.types.Operator):
     bl_idname = "plotrock.update_plot"
     bl_label = "Update Plot"         # Display name in the interface.
     bl_options = {'REGISTER', 'UNDO'}  # Enable undo for the operator.
@@ -91,19 +93,13 @@ class updatePlot(bpy.types.Operator):
             spline.points[i].co= (val + [2.0] + [1.0])
 
     def execute(self, context):
-        import csv
-        from io import StringIO
         print("updating")
         self.obj = context.active_object
         self.crv = self.obj.data
         self.spline = self.crv.splines[0]
-        self.csv_data = self.crv.plotrock_csv
+        self.csv_textdata = self.crv.plotrock_csv
 
-        raw_data = self.csv_data.as_string()
-        reader = csv.reader(StringIO(raw_data)) # read csv string as csv file
-        string_list = list(reader)
-
-        self.pos_list = [list(map(float, x)) for x in string_list] # convert list of strings to list of floats
+        self.pos_list = convertData(self.csv_textdata)
 
         self.update_curve()
         return {"FINISHED"}
@@ -114,12 +110,12 @@ class updatePlot(bpy.types.Operator):
 
 def register():
     #bpy.utils.register_class(Plot)
-    bpy.utils.register_class(updatePlot)
+    bpy.utils.register_class(UpdatePlot)
     print("Hello World")
 
 def unregister():
     #bpy.utils.unregister_class(Plot)
-    bpy.utils.unregister_class(updatePlot)
+    bpy.utils.unregister_class(UpdatePlot)
     print("Goodbye World")
 
 

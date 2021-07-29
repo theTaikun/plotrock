@@ -25,7 +25,7 @@ def read_some_data(context, filepath, use_some_setting):
 from bpy_extras.io_utils import ImportHelper
 from bpy.props import StringProperty, BoolProperty, EnumProperty
 from bpy.types import Operator
-import plotrock.plotrock as plotrock_plotter
+from . import plot
 
 
 class ImportSomeData(Operator, ImportHelper):
@@ -62,12 +62,12 @@ class ImportSomeData(Operator, ImportHelper):
     )
 
     def execute(self, context):
-        self.internal_csv = bpy.data.texts.load(self.filepath, internal=True)
+        self.csv_textdata = bpy.data.texts.load(self.filepath, internal=True)
 
-        plot = plotrock_plotter.Plot
-        plot().execute(
+        new_plot = plot.NewPlot
+        new_plot().execute(
                 context = context,
-                csv_data = self.internal_csv,
+                csv_textdata = self.csv_textdata,
                 filepath = self.filepath,
                 has_headers = self.has_headers,
                 deliminator = self.deliminator
