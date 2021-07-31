@@ -50,19 +50,20 @@ class ImportSomeData(Operator, ImportHelper):
         default=True,
     )
 
-    deliminator: EnumProperty(
-        name="Deliminator",
-        description="Choose deliminator used in file (typically a comma)",
+    delimiter: EnumProperty(
+        name="Delimiter",
+        description="Choose delimiter used in file (typically a comma)",
         items=(
-            ("comma", ", Comma", "Items seperated by comma"),
-            ("semi", "; Semicolon", "Items seperated by semicolon"),
-            ("NONE", "None", "None"),
+            (",", ", Comma", "Items seperated by comma"),
+            (";", "; Semicolon", "Items seperated by semicolon"),
         ),
-        default="comma",
+        default=",",
     )
 
     def execute(self, context):
         self.csv_textdata = bpy.data.texts.load(self.filepath, internal=True)
+        self.csv_textdata["has_headers"] = self.has_headers
+        self.csv_textdata["delimiter"] = self.delimiter
 
         new_plot = plot.NewPlot
         new_plot().execute(
@@ -70,7 +71,7 @@ class ImportSomeData(Operator, ImportHelper):
                 csv_textdata = self.csv_textdata,
                 filepath = self.filepath,
                 has_headers = self.has_headers,
-                deliminator = self.deliminator
+                #delimiter = self.delimiter
                 )
         #return read_some_data(context, self.filepath, self.use_setting)
         return {"FINISHED"}
