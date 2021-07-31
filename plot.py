@@ -62,6 +62,7 @@ class NewPlot:
         xaxis_crv.offset_y = -1
         xaxis_obj = bpy.data.objects.new("xAxisObj", xaxis_crv)
         xaxis_obj.data.body = self.headers[0]
+        xaxis_obj.parent = self.root
         bpy.data.scenes[0].collection.objects.link(xaxis_obj)
 
         yaxis_crv = bpy.data.curves.new(type="FONT",name="yAxisCrv")
@@ -69,6 +70,7 @@ class NewPlot:
         yaxis_crv.offset_y = 2
         yaxis_obj = bpy.data.objects.new("yAxisObj", yaxis_crv)
         yaxis_obj.data.body = self.headers[1]
+        yaxis_obj.parent = self.root
         bpy.data.scenes[0].collection.objects.link(yaxis_obj)
 
     def create_curve(self, coords_list):
@@ -81,6 +83,9 @@ class NewPlot:
 
     def create_obj(self):
         print("create new obj")
+
+        self.root = bpy.data.objects.new("rockplot_root", None)
+        self.root.empty_display_type = "ARROWS"
         crv = bpy.data.curves.new('crv', 'CURVE')
         crv.dimensions = '2D'
         crv.plotrock_type="plot"
@@ -88,7 +93,9 @@ class NewPlot:
         self.crv = crv
         self.spline = spline
         self.obj = bpy.data.objects.new('object_name', crv)
+        self.obj.parent = self.root
         bpy.data.scenes[0].collection.objects.link(self.obj)
+        bpy.data.scenes[0].collection.objects.link(self.root)
 
 class UpdatePlot(bpy.types.Operator):
     bl_idname = "plotrock.update_plot"
