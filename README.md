@@ -8,7 +8,7 @@
 
 ## Limitations
 * Only handles files formatted as CSV.
-* CSVs must actually use commas. Other deliminators not yet supported.
+* ~~CSVs must actually use commas. Other deliminators not yet supported.~~
 * Files must have the extension `.csv` or `.txt`.
-* Headers not yet supported.
+* ~~Headers not yet supported.~~
 * Currently only creates line graphs.

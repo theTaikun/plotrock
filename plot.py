@@ -3,15 +3,20 @@ import bpy
 # TODO: check if new data same as old,
 #       if so, don't go through update process
 
-def convertData(csv_textdata):
+def convertData(csv_textdata, entry_delimiter=",", has_headers=True):
     from io import StringIO
     import csv
     print("converting data")
     raw_data = csv_textdata.as_string()
-    reader = csv.reader(StringIO(raw_data)) # read csv string as csv file
+    reader = csv.reader(StringIO(raw_data), delimiter=entry_delimiter) # read csv string as csv file
+    if(has_headers):
+        headers = next(reader)
+        print("headers: {}".format(headers))
+    else:
+        headers = None
     string_list = list(reader)
     pos_list = [list(map(float, x)) for x in string_list] # convert list of strings to list of floats
-    return pos_list
+    return pos_list, headers
 
 
 class NewPlot:
@@ -25,7 +30,7 @@ class NewPlot:
     crv = None
     spline = None
     has_header = False
-    deliminator = None
+    delimiter = None
 
     def execute(self, **args):        # execute() is called when running the operator.
         #self.report({"ERROR"}, "error mes")
@@ -34,17 +39,39 @@ class NewPlot:
         self.csv_textdata = args.get("csv_textdata")
         self.filepath= args.get("filepath")
         self.has_headers = args.get("has_headers")
-        self.deliminator = args.get("deliminator")
-        self.pos_list = convertData(self.csv_textdata)
+        #self.delimiter = args.get("delimiter")
+        self.pos_list, self.headers = convertData(self.csv_textdata, self.csv_textdata['delimiter'], self.has_headers)
+
+
         if self.obj is None:
             print("no class obj")
             self.create_obj()
+            if(self.has_headers):
+                print("x-axis: {}, y-axis: {}".format(self.headers[0], self.headers[1]))
+                self.create_axis_text()
             self.create_curve(self.pos_list)
         else:
             print("class obj found: {}".format(self.obj))
             self.update_curve()
 
         return {'FINISHED'}
+
+    def create_axis_text(self):
+        xaxis_crv = bpy.data.curves.new(type="FONT",name="xAxisCrv")
+        xaxis_crv.offset_x = 2
+        xaxis_crv.offset_y = -1
+        xaxis_obj = bpy.data.objects.new("xAxisObj", xaxis_crv)
+        xaxis_obj.data.body = self.headers[0]
+        xaxis_obj.parent = self.root
+        bpy.data.scenes[0].collection.objects.link(xaxis_obj)
+
+        yaxis_crv = bpy.data.curves.new(type="FONT",name="yAxisCrv")
+        yaxis_crv.offset_x = -2
+        yaxis_crv.offset_y = 2
+        yaxis_obj = bpy.data.objects.new("yAxisObj", yaxis_crv)
+        yaxis_obj.data.body = self.headers[1]
+        yaxis_obj.parent = self.root
+        bpy.data.scenes[0].collection.objects.link(yaxis_obj)
 
     def create_curve(self, coords_list):
         print("create curve")
@@ -56,6 +83,9 @@ class NewPlot:
 
     def create_obj(self):
         print("create new obj")
+
+        self.root = bpy.data.objects.new("rockplot_root", None)
+        self.root.empty_display_type = "ARROWS"
         crv = bpy.data.curves.new('crv', 'CURVE')
         crv.dimensions = '2D'
         crv.plotrock_type="plot"
@@ -63,7 +93,9 @@ class NewPlot:
         self.crv = crv
         self.spline = spline
         self.obj = bpy.data.objects.new('object_name', crv)
+        self.obj.parent = self.root
         bpy.data.scenes[0].collection.objects.link(self.obj)
+        bpy.data.scenes[0].collection.objects.link(self.root)
 
 class UpdatePlot(bpy.types.Operator):
     bl_idname = "plotrock.update_plot"
@@ -98,8 +130,10 @@ class UpdatePlot(bpy.types.Operator):
         self.crv = self.obj.data
         self.spline = self.crv.splines[0]
         self.csv_textdata = self.crv.plotrock_csv
+        self.delimiter = self.csv_textdata['delimiter']
+        self.has_headers = self.csv_textdata['has_headers']
 
-        self.pos_list = convertData(self.csv_textdata)
+        self.pos_list, self.headers = convertData(self.csv_textdata, self.delimiter, self.has_headers)
 
         self.update_curve()
         return {"FINISHED"}
