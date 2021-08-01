@@ -113,6 +113,78 @@ class NewPlot:
         self.obj.parent = self.root
         bpy.data.scenes[0].collection.objects.link(self.obj)
         bpy.data.scenes[0].collection.objects.link(self.root)
+        self.grid = self.create_grid()
+        self.grid.parent = self.root
+        bpy.data.scenes[0].collection.objects.link(self.grid)
+
+
+    def create_grid(self):
+        gridGeo = bpy.data.node_groups.new("gridNodeTree", "GeometryNodeTree")
+        gridMesh = bpy.data.meshes.new("gridMesh")
+        gridObj = bpy.data.objects.new("gridObj", gridMesh )
+        geoModifier = gridObj.modifiers.new("gridGeoNodes", "NODES")
+        geoModifier.node_group = gridGeo
+        wireModifier = gridObj.modifiers.new("gridWire", "WIREFRAME")
+        wireModifier.thickness = 0.125
+
+        nodes = gridGeo.nodes
+
+        gridGeo.inputs.new("NodeSocketGeometry", "Geometry")
+        gridGeo.outputs.new("NodeSocketGeometry", "Geometry")
+        input_node = nodes.new("NodeGroupInput")
+        input_node.location.x = -300 - input_node.width
+        output_node = nodes.new("NodeGroupOutput")
+        output_node.is_active_output = True
+        output_node.location.x = 200
+
+
+        gridGeo.inputs.new("NodeSocketVector", "Size")
+        gridGeo.inputs[1].default_value=[10,10,0]
+
+        node = nodes.new("GeometryNodeMeshGrid")
+        node.location.x = -200 - node.width
+        node.name = "MESH_GRID"
+
+        node = nodes.new("GeometryNodeTransform")
+        node.name = "XLATE_XFORM"
+
+        node = nodes.new("ShaderNodeVectorMath")
+        node.name = "DIV_BY_TWO"
+        node.location.x = -50 - node.width
+        node.location.y = -100
+        node.operation = "DIVIDE"
+        node.inputs[1].default_value=[2,2,1]
+
+        node = nodes.new("ShaderNodeVectorMath")
+        node.name = "ADD_GRID_LINE"
+        node.location.x = -75 - node.width
+        node.location.y = -200
+        node.operation = "ADD"
+        node.inputs[1].default_value=[1,1,0]
+
+        node = nodes.new("ShaderNodeSeparateXYZ")
+        node.name = "SepXYZ_size"
+
+        node = nodes.new("ShaderNodeSeparateXYZ")
+        node.name = "SepXYZ_verts"
+
+        gridGeo.links.new(output_node.inputs[0], nodes["XLATE_XFORM"].outputs[0])
+        gridGeo.links.new(nodes["XLATE_XFORM"].inputs["Geometry"], nodes["MESH_GRID"].outputs[0])
+        gridGeo.links.new(nodes["XLATE_XFORM"].inputs[1], nodes["DIV_BY_TWO"].outputs[0])
+        gridGeo.links.new(nodes["SepXYZ_size"].inputs[0], input_node.outputs[1])
+        gridGeo.links.new(nodes["DIV_BY_TWO"].inputs[0], input_node.outputs[1])
+        gridGeo.links.new(nodes["ADD_GRID_LINE"].inputs[0], input_node.outputs[1])
+        gridGeo.links.new(nodes["MESH_GRID"].inputs[0], nodes["SepXYZ_size"].outputs[0])
+        gridGeo.links.new(nodes["MESH_GRID"].inputs[1], nodes["SepXYZ_size"].outputs[1])
+
+        gridGeo.links.new(nodes["MESH_GRID"].inputs[2], nodes["SepXYZ_verts"].outputs[0])
+        gridGeo.links.new(nodes["MESH_GRID"].inputs[3], nodes["SepXYZ_verts"].outputs[1])
+
+        gridGeo.links.new(nodes["SepXYZ_verts"].inputs[0], nodes["ADD_GRID_LINE"].outputs[0])
+        gridGeo.links.new(nodes["ADD_GRID_LINE"].inputs[0], input_node.outputs[1])
+
+        return gridObj
+
 
 class UpdatePlot(bpy.types.Operator):
     bl_idname = "plotrock.update_plot"
