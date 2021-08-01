@@ -18,6 +18,14 @@ def convertData(csv_textdata, entry_delimiter=",", has_headers=True):
     pos_list = [list(map(float, x)) for x in string_list] # convert list of strings to list of floats
     return pos_list, headers
 
+# findRoot function courtesy of MMDTools addon
+def findRoot(obj):
+    if obj:
+        if obj.plotrock_type == 'ROOT':
+            return obj
+        return findRoot(obj.parent)
+    return None
+
 
 class NewPlot:
     """"
@@ -79,6 +87,14 @@ class NewPlot:
         spline.points.add(len(coords_list) -1 )
         for i, val in enumerate(coords_list):
             spline.points[i].co = (val + [2.0] + [1.0])
+
+        # Size of Empty same for all axis => set as max of x and y value
+        max_x = max(coords_list)[0] # Max of nested list checks first val
+        max_y = max(coords_list, key=lambda x: x[1])[1] # Funct to check max by second val, and return that val
+        self.root.empty_display_size = max(max_x, max_y) # compares the 2 maxes
+
+        self.root.plotrock_settings.max_x = max_x
+        self.root.plotrock_settings.max_y = max_y
         self.crv.plotrock_csv = self.csv_textdata
 
     def create_obj(self):
@@ -86,6 +102,7 @@ class NewPlot:
 
         self.root = bpy.data.objects.new("rockplot_root", None)
         self.root.empty_display_type = "ARROWS"
+        self.root.plotrock_type = "ROOT"
         crv = bpy.data.curves.new('crv', 'CURVE')
         crv.dimensions = '2D'
         crv.plotrock_type="plot"
@@ -124,6 +141,16 @@ class UpdatePlot(bpy.types.Operator):
             print("updating point {}".format(i))
             spline.points[i].co= (val + [2.0] + [1.0])
 
+    def update_axis(self):
+        coords_list = self.pos_list
+        # Size of Empty same for all axis => set as max of x and y value
+        max_x = max(coords_list)[0] # Max of nested list checks first val
+        max_y = max(coords_list, key=lambda x: x[1])[1] # Funct to check max by second val, and return that val
+        self.root.empty_display_size = max(max_x, max_y) # compares the 2 maxes
+
+        self.root.plotrock_settings.max_x = max_x
+        self.root.plotrock_settings.max_y = max_y
+
     def execute(self, context):
         print("updating")
         self.obj = context.active_object
@@ -132,10 +159,12 @@ class UpdatePlot(bpy.types.Operator):
         self.csv_textdata = self.crv.plotrock_csv
         self.delimiter = self.csv_textdata['delimiter']
         self.has_headers = self.csv_textdata['has_headers']
+        self.root = findRoot(self.obj)
 
         self.pos_list, self.headers = convertData(self.csv_textdata, self.delimiter, self.has_headers)
 
         self.update_curve()
+        self.update_axis()
         return {"FINISHED"}
 
 
