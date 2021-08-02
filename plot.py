@@ -86,7 +86,7 @@ class NewPlot:
         spline = self.spline
         spline.points.add(len(coords_list) -1 )
         for i, val in enumerate(coords_list):
-            spline.points[i].co = (val + [2.0] + [1.0])
+            spline.points[i].co = (val + [0.0] + [1.0])
 
         # Size of Empty same for all axis => set as max of x and y value
         max_x = max(coords_list)[0] # Max of nested list checks first val
@@ -243,7 +243,7 @@ class UpdatePlot(bpy.types.Operator):
         spline = self.spline
         for i, val in enumerate(self.pos_list):
             print("updating point {}".format(i))
-            spline.points[i].co= (val + [2.0] + [1.0])
+            spline.points[i].co= (val + [0.0] + [1.0])
 
     def update_axis(self):
         coords_list = self.pos_list
