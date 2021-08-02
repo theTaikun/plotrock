@@ -132,17 +132,39 @@ class NewPlot:
         gridGeo.inputs.new("NodeSocketGeometry", "Geometry")
         gridGeo.outputs.new("NodeSocketGeometry", "Geometry")
         input_node = nodes.new("NodeGroupInput")
-        input_node.location.x = -300 - input_node.width
+        input_node.location.x = -700 - input_node.width
+        input_node.location.y = -100
         output_node = nodes.new("NodeGroupOutput")
         output_node.is_active_output = True
         output_node.location.x = 200
 
 
-        gridGeo.inputs.new("NodeSocketVector", "Size")
-        gridGeo.inputs[1].default_value=[10,10,0]
+        group_input_size= gridGeo.inputs.new("NodeSocketVector", "Size")
+        group_input_size.default_value=[10,10,0]
+        # TODO: allow both driver and user modifiable
+        group_input_size.description = "Custom Grid Size. TEMPORARILY DISABLED"
+
+        node = nodes.new("NodeReroute")
+        node.name = "SIZE_SPLITTER"
+        node.location.x = -600
+
+        node=nodes.new("FunctionNodeInputVector")
+        node.name = "DRIVER_SIZE"
+        node.location.x = -700 - node.width
+        node.location.y = 100
+        fcurve = node.driver_add("vector")
+        var = fcurve[0].driver.variables.new()
+        fcurve[0].driver.expression = "var"
+        var.targets[0].id = self.root
+        var.targets[0].data_path = "plotrock_settings.max_x"
+        var = fcurve[1].driver.variables.new()
+        fcurve[1].driver.expression = "var"
+        var.targets[0].id = self.root
+        var.targets[0].data_path = "plotrock_settings.max_y"
 
         node = nodes.new("GeometryNodeMeshGrid")
-        node.location.x = -200 - node.width
+        node.location.x = -100 - node.width
+        node.location.y = 200
         node.name = "MESH_GRID"
 
         node = nodes.new("GeometryNodeTransform")
@@ -157,23 +179,34 @@ class NewPlot:
 
         node = nodes.new("ShaderNodeVectorMath")
         node.name = "ADD_GRID_LINE"
-        node.location.x = -75 - node.width
-        node.location.y = -200
+        node.location.x = -450 - node.width
+        node.location.y = 200
         node.operation = "ADD"
         node.inputs[1].default_value=[1,1,0]
 
         node = nodes.new("ShaderNodeSeparateXYZ")
         node.name = "SepXYZ_size"
+        node.location.x = -275 - node.width
+        node.location.y = 250
 
         node = nodes.new("ShaderNodeSeparateXYZ")
         node.name = "SepXYZ_verts"
+        node.location.x = -275 - node.width
+        node.location.y = 100
 
+        # Choose between user-editable modifier input, and automatic driver
+        #size_input = input_node.outputs[1]
+        size_input = nodes["DRIVER_SIZE"].outputs[0]
+
+
+        gridGeo.links.new(nodes["SIZE_SPLITTER"].inputs[0], size_input)
         gridGeo.links.new(output_node.inputs[0], nodes["XLATE_XFORM"].outputs[0])
+
         gridGeo.links.new(nodes["XLATE_XFORM"].inputs["Geometry"], nodes["MESH_GRID"].outputs[0])
         gridGeo.links.new(nodes["XLATE_XFORM"].inputs[1], nodes["DIV_BY_TWO"].outputs[0])
-        gridGeo.links.new(nodes["SepXYZ_size"].inputs[0], input_node.outputs[1])
-        gridGeo.links.new(nodes["DIV_BY_TWO"].inputs[0], input_node.outputs[1])
-        gridGeo.links.new(nodes["ADD_GRID_LINE"].inputs[0], input_node.outputs[1])
+        gridGeo.links.new(nodes["SepXYZ_size"].inputs[0], nodes["SIZE_SPLITTER"].outputs[0])
+        gridGeo.links.new(nodes["DIV_BY_TWO"].inputs[0], nodes["SIZE_SPLITTER"].outputs[0])
+        gridGeo.links.new(nodes["ADD_GRID_LINE"].inputs[0], nodes["SIZE_SPLITTER"].outputs[0])
         gridGeo.links.new(nodes["MESH_GRID"].inputs[0], nodes["SepXYZ_size"].outputs[0])
         gridGeo.links.new(nodes["MESH_GRID"].inputs[1], nodes["SepXYZ_size"].outputs[1])
 
@@ -181,7 +214,6 @@ class NewPlot:
         gridGeo.links.new(nodes["MESH_GRID"].inputs[3], nodes["SepXYZ_verts"].outputs[1])
 
         gridGeo.links.new(nodes["SepXYZ_verts"].inputs[0], nodes["ADD_GRID_LINE"].outputs[0])
-        gridGeo.links.new(nodes["ADD_GRID_LINE"].inputs[0], input_node.outputs[1])
 
         return gridObj
 
