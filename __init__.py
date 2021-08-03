@@ -1,7 +1,7 @@
 bl_info = {
     "name": "PlotRock",
     "version": (0,0,1),
-    "blender": (2, 80, 0),
+    "blender": (2, 92, 0),
     "category": "Object",
 }
 
