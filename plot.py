@@ -105,11 +105,15 @@ class NewPlot:
         self.root.plotrock_type = "ROOT"
         crv = bpy.data.curves.new('crv', 'CURVE')
         crv.dimensions = '2D'
+        crv.extrude = 0.5
+        crv.bevel_depth = 0.05
         crv.plotrock_type="plot"
         spline = crv.splines.new(type='POLY')
+        spline.use_smooth = False
         self.crv = crv
         self.spline = spline
         self.obj = bpy.data.objects.new('object_name', crv)
+        self.obj.location[2] = 0.5
         self.obj.parent = self.root
         bpy.data.scenes[0].collection.objects.link(self.obj)
         bpy.data.scenes[0].collection.objects.link(self.root)
