@@ -87,24 +87,26 @@ class PlotPanel(bpy.types.Panel):
         layout = self.layout
         obj = context.active_object
 
-        layout.label(text=obj.name)
+        if(obj is not None and obj.type == "CURVE" and obj.data.plotrock_type == "plot"):
+            split = layout.split()
+            col=split.column()
+            col.label(text="Line Shape")
 
-        split = layout.split()
-        # Line Depth
-        col=split.column()
-        col.label(text="Line Shape")
-        col=split.column()
-        col.prop(obj.data, 'extrude', text="Depth")
+            # Line Depth
+            col=split.column()
+            col.prop(obj.data, 'extrude', text="Depth")
 
-        # Line Width
-        col.prop(obj.data, 'bevel_depth', text='Width')
+            # Line Width
+            col.prop(obj.data, 'bevel_depth', text='Width')
 
-        row = layout.row()
-        row.prop(obj.data.splines[0], 'use_smooth')
+            row = layout.row()
+            row.prop(obj.data.splines[0], 'use_smooth')
 
-        row = layout.row()
-        row.prop(obj, 'location', index=2, text="Z-Position")
-
+            row = layout.row()
+            row.prop(obj, 'location', index=2, text="Z-Position")
+        else:
+            layout.label(text="Select a Plot")
+        return
 
 
 
