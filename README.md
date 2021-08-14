@@ -9,6 +9,10 @@ data from their tables and spreadsheets.
 * Handy sidemenu that allows plot customization.
 * Utilize all Blender tools such as materials, lighting, and animated cameras.
 
+
+https://user-images.githubusercontent.com/43371347/129456528-502482cb-86b4-4a55-a419-97ae086831ed.mp4
+
+
 ## Usage
 1. Attain data, either from exporting spreadsheet data to .csv, or procuring a .csv file from elsewhere.
 2. Import the data either from `File`=>`Import`=>`Import CSV for plotting` or from the PlotRock side menu.
