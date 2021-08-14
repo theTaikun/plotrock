@@ -1,7 +1,12 @@
 bl_info = {
     "name": "PlotRock",
+    "description": "Create 3D plots from CSV data",
+    "author": "Isaac Phillips (theTaikun)",
     "version": (0,0,1),
-    "blender": (2, 80, 0),
+    "version_code": 1, # not used by blender, but keeping track here
+    "blender": (2, 92, 0),
+    "location": "File > Import > Import CSV for plotting",
+    "tracker_url": "https://github.com/theTaikun/plotrock/issues/new",
     "category": "Object",
 }
 

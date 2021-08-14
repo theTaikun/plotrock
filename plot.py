@@ -18,6 +18,14 @@ def convertData(csv_textdata, entry_delimiter=",", has_headers=True):
     pos_list = [list(map(float, x)) for x in string_list] # convert list of strings to list of floats
     return pos_list, headers
 
+# findRoot function courtesy of MMDTools addon
+def findRoot(obj):
+    if obj:
+        if obj.plotrock_type == 'ROOT':
+            return obj
+        return findRoot(obj.parent)
+    return None
+
 
 class NewPlot:
     """"
@@ -78,7 +86,15 @@ class NewPlot:
         spline = self.spline
         spline.points.add(len(coords_list) -1 )
         for i, val in enumerate(coords_list):
-            spline.points[i].co = (val + [2.0] + [1.0])
+            spline.points[i].co = (val + [0.0] + [1.0])
+
+        # Size of Empty same for all axis => set as max of x and y value
+        max_x = max(coords_list)[0] # Max of nested list checks first val
+        max_y = max(coords_list, key=lambda x: x[1])[1] # Funct to check max by second val, and return that val
+        self.root.empty_display_size = max(max_x, max_y) # compares the 2 maxes
+
+        self.root.plotrock_settings.max_x = max_x
+        self.root.plotrock_settings.max_y = max_y
         self.crv.plotrock_csv = self.csv_textdata
 
     def create_obj(self):
@@ -86,16 +102,125 @@ class NewPlot:
 
         self.root = bpy.data.objects.new("rockplot_root", None)
         self.root.empty_display_type = "ARROWS"
+        self.root.plotrock_type = "ROOT"
         crv = bpy.data.curves.new('crv', 'CURVE')
         crv.dimensions = '2D'
+        crv.extrude = 0.5
+        crv.bevel_depth = 0.05
         crv.plotrock_type="plot"
         spline = crv.splines.new(type='POLY')
+        spline.use_smooth = False
         self.crv = crv
         self.spline = spline
         self.obj = bpy.data.objects.new('object_name', crv)
+        self.obj.location[2] = 0.5
         self.obj.parent = self.root
         bpy.data.scenes[0].collection.objects.link(self.obj)
         bpy.data.scenes[0].collection.objects.link(self.root)
+        self.grid = self.create_grid()
+        self.grid.parent = self.root
+        bpy.data.scenes[0].collection.objects.link(self.grid)
+
+
+    def create_grid(self):
+        gridGeo = bpy.data.node_groups.new("gridNodeTree", "GeometryNodeTree")
+        gridMesh = bpy.data.meshes.new("gridMesh")
+        gridObj = bpy.data.objects.new("gridObj", gridMesh )
+        geoModifier = gridObj.modifiers.new("gridGeoNodes", "NODES")
+        geoModifier.node_group = gridGeo
+        wireModifier = gridObj.modifiers.new("gridWire", "WIREFRAME")
+        wireModifier.thickness = 0.125
+
+        nodes = gridGeo.nodes
+
+        gridGeo.inputs.new("NodeSocketGeometry", "Geometry")
+        gridGeo.outputs.new("NodeSocketGeometry", "Geometry")
+        input_node = nodes.new("NodeGroupInput")
+        input_node.location.x = -700 - input_node.width
+        input_node.location.y = -100
+        output_node = nodes.new("NodeGroupOutput")
+        output_node.is_active_output = True
+        output_node.location.x = 200
+
+
+        group_input_size= gridGeo.inputs.new("NodeSocketVector", "Size")
+        group_input_size.default_value=[10,10,0]
+        # TODO: allow both driver and user modifiable
+        group_input_size.description = "Custom Grid Size. TEMPORARILY DISABLED"
+
+        node = nodes.new("NodeReroute")
+        node.name = "SIZE_SPLITTER"
+        node.location.x = -600
+
+        node=nodes.new("FunctionNodeInputVector")
+        node.name = "DRIVER_SIZE"
+        node.location.x = -700 - node.width
+        node.location.y = 100
+        fcurve = node.driver_add("vector")
+        var = fcurve[0].driver.variables.new()
+        fcurve[0].driver.expression = "var"
+        var.targets[0].id = self.root
+        var.targets[0].data_path = "plotrock_settings.max_x"
+        var = fcurve[1].driver.variables.new()
+        fcurve[1].driver.expression = "var"
+        var.targets[0].id = self.root
+        var.targets[0].data_path = "plotrock_settings.max_y"
+
+        node = nodes.new("GeometryNodeMeshGrid")
+        node.location.x = -100 - node.width
+        node.location.y = 200
+        node.name = "MESH_GRID"
+
+        node = nodes.new("GeometryNodeTransform")
+        node.name = "XLATE_XFORM"
+
+        node = nodes.new("ShaderNodeVectorMath")
+        node.name = "DIV_BY_TWO"
+        node.location.x = -50 - node.width
+        node.location.y = -100
+        node.operation = "DIVIDE"
+        node.inputs[1].default_value=[2,2,1]
+
+        node = nodes.new("ShaderNodeVectorMath")
+        node.name = "ADD_GRID_LINE"
+        node.location.x = -450 - node.width
+        node.location.y = 200
+        node.operation = "ADD"
+        node.inputs[1].default_value=[1,1,0]
+
+        node = nodes.new("ShaderNodeSeparateXYZ")
+        node.name = "SepXYZ_size"
+        node.location.x = -275 - node.width
+        node.location.y = 250
+
+        node = nodes.new("ShaderNodeSeparateXYZ")
+        node.name = "SepXYZ_verts"
+        node.location.x = -275 - node.width
+        node.location.y = 100
+
+        # Choose between user-editable modifier input, and automatic driver
+        #size_input = input_node.outputs[1]
+        size_input = nodes["DRIVER_SIZE"].outputs[0]
+
+
+        gridGeo.links.new(nodes["SIZE_SPLITTER"].inputs[0], size_input)
+        gridGeo.links.new(output_node.inputs[0], nodes["XLATE_XFORM"].outputs[0])
+
+        gridGeo.links.new(nodes["XLATE_XFORM"].inputs["Geometry"], nodes["MESH_GRID"].outputs[0])
+        gridGeo.links.new(nodes["XLATE_XFORM"].inputs[1], nodes["DIV_BY_TWO"].outputs[0])
+        gridGeo.links.new(nodes["SepXYZ_size"].inputs[0], nodes["SIZE_SPLITTER"].outputs[0])
+        gridGeo.links.new(nodes["DIV_BY_TWO"].inputs[0], nodes["SIZE_SPLITTER"].outputs[0])
+        gridGeo.links.new(nodes["ADD_GRID_LINE"].inputs[0], nodes["SIZE_SPLITTER"].outputs[0])
+        gridGeo.links.new(nodes["MESH_GRID"].inputs[0], nodes["SepXYZ_size"].outputs[0])
+        gridGeo.links.new(nodes["MESH_GRID"].inputs[1], nodes["SepXYZ_size"].outputs[1])
+
+        gridGeo.links.new(nodes["MESH_GRID"].inputs[2], nodes["SepXYZ_verts"].outputs[0])
+        gridGeo.links.new(nodes["MESH_GRID"].inputs[3], nodes["SepXYZ_verts"].outputs[1])
+
+        gridGeo.links.new(nodes["SepXYZ_verts"].inputs[0], nodes["ADD_GRID_LINE"].outputs[0])
+
+        return gridObj
+
 
 class UpdatePlot(bpy.types.Operator):
     bl_idname = "plotrock.update_plot"
@@ -122,7 +247,17 @@ class UpdatePlot(bpy.types.Operator):
         spline = self.spline
         for i, val in enumerate(self.pos_list):
             print("updating point {}".format(i))
-            spline.points[i].co= (val + [2.0] + [1.0])
+            spline.points[i].co= (val + [0.0] + [1.0])
+
+    def update_axis(self):
+        coords_list = self.pos_list
+        # Size of Empty same for all axis => set as max of x and y value
+        max_x = max(coords_list)[0] # Max of nested list checks first val
+        max_y = max(coords_list, key=lambda x: x[1])[1] # Funct to check max by second val, and return that val
+        self.root.empty_display_size = max(max_x, max_y) # compares the 2 maxes
+
+        self.root.plotrock_settings.max_x = max_x
+        self.root.plotrock_settings.max_y = max_y
 
     def execute(self, context):
         print("updating")
@@ -132,10 +267,12 @@ class UpdatePlot(bpy.types.Operator):
         self.csv_textdata = self.crv.plotrock_csv
         self.delimiter = self.csv_textdata['delimiter']
         self.has_headers = self.csv_textdata['has_headers']
+        self.root = findRoot(self.obj)
 
         self.pos_list, self.headers = convertData(self.csv_textdata, self.delimiter, self.has_headers)
 
         self.update_curve()
+        self.update_axis()
         return {"FINISHED"}
 
 

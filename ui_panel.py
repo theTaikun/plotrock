@@ -1,10 +1,9 @@
 import bpy
 
 
-class LayoutDemoPanel(bpy.types.Panel):
-    """Creates a Panel in the scene context of the properties editor"""
-    bl_label = "RockPlot Settings"
-    bl_idname = "OBJECT_PT_layout"
+class OperatorPanel(bpy.types.Panel):
+    bl_label = "Operator"
+    bl_idname = "OBJECT_PT_plotrock_layout"
     bl_space_type = 'VIEW_3D'
     bl_region_type = 'UI'
     bl_context = ""
@@ -75,12 +74,50 @@ class LayoutDemoPanel(bpy.types.Panel):
         row.scale_y = 3.0
         row.operator("plotrock.update_plot")
 
+
+class PlotPanel(bpy.types.Panel):
+    bl_label = "Plot Settings"
+    bl_idname = "OBJECT_PT_plotrock_plot"
+    bl_space_type = 'VIEW_3D'
+    bl_region_type = 'UI'
+    bl_context = ""
+    bl_category = "RockPlot"
+
+    def draw(self, context):
+        layout = self.layout
+        obj = context.active_object
+
+        if(obj is not None and obj.type == "CURVE" and obj.data.plotrock_type == "plot"):
+            split = layout.split()
+            col=split.column()
+            col.label(text="Line Shape")
+
+            # Line Depth
+            col=split.column()
+            col.prop(obj.data, 'extrude', text="Depth")
+
+            # Line Width
+            col.prop(obj.data, 'bevel_depth', text='Width')
+
+            row = layout.row()
+            row.prop(obj.data.splines[0], 'use_smooth')
+
+            row = layout.row()
+            row.prop(obj, 'location', index=2, text="Z-Position")
+        else:
+            layout.label(text="Select a Plot")
+        return
+
+
+
 def register():
-    bpy.utils.register_class(LayoutDemoPanel)
+    bpy.utils.register_class(OperatorPanel)
+    bpy.utils.register_class(PlotPanel)
 
 
 def unregister():
-    bpy.utils.unregister_class(LayoutDemoPanel)
+    bpy.utils.unregister_class(OperatorPanel)
+    bpy.utils.unregister_class(PlotPanel)
 
 
 if __name__ == "__main__":
