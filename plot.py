@@ -9,13 +9,19 @@ def convertData(csv_textdata, entry_delimiter=",", has_headers=True):
     print("converting data")
     raw_data = csv_textdata.as_string()
     reader = csv.reader(StringIO(raw_data), delimiter=entry_delimiter) # read csv string as csv file
+    print("READER: {}".format(reader))
     if(has_headers):
         headers = next(reader)
         print("headers: {}".format(headers))
     else:
         headers = None
     string_list = list(reader)
-    pos_list = [list(map(float, x)) for x in string_list] # convert list of strings to list of floats
+    print("string_list: {}".format(string_list))
+    try:
+        pos_list = [list(map(float, x)) for x in string_list] # convert list of strings to list of floats
+    except ValueError:
+        pos_list = None
+    print("pos_list: {}".format(pos_list))
     return pos_list, headers
 
 # findRoot function courtesy of MMDTools addon
@@ -50,6 +56,8 @@ class NewPlot:
         #self.delimiter = args.get("delimiter")
         self.pos_list, self.headers = convertData(self.csv_textdata, self.csv_textdata['delimiter'], self.has_headers)
 
+        if self.pos_list is None:
+            return {'FINISHED'}
 
         if self.obj is None:
             print("no class obj")
@@ -271,8 +279,9 @@ class UpdatePlot(bpy.types.Operator):
 
         self.pos_list, self.headers = convertData(self.csv_textdata, self.delimiter, self.has_headers)
 
-        self.update_curve()
-        self.update_axis()
+        if self.pos_list is not None:
+            self.update_curve()
+            self.update_axis()
         return {"FINISHED"}
 
 
