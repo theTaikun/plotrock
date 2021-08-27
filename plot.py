@@ -17,12 +17,17 @@ def convertData(csv_textdata, entry_delimiter=",", has_headers=True):
         headers = None
     string_list = list(reader)
     print("string_list: {}".format(string_list))
-    try:
-        pos_list = [list(map(float, x)) for x in string_list] # convert list of strings to list of floats
-    except ValueError:
-        pos_list = None
+    pos_list = [i for i in sanitizeData(string_list)]
     print("pos_list: {}".format(pos_list))
     return pos_list, headers
+
+def sanitizeData(data):
+    for i in data:
+        try:
+            x = list(map(float, i))
+            yield x
+        except:
+            pass
 
 # findRoot function courtesy of MMDTools addon
 def findRoot(obj):
