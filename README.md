@@ -14,7 +14,7 @@ https://user-images.githubusercontent.com/43371347/129456528-502482cb-86b4-4a55-
 
 ## Install
 1. Find the latest [release](https://github.com/theTaikun/plotrock/releases).
-2. Download the `Source Code` zip.
+2. Download the `plotrock-<version>-master.zip` file.
 3. In Blender, navigate to `Edit` => `Preferences` => `Add-Ons`.
 4. Click `Install` and select the dowloaded .zip.
 5. Now that the addon is installed, click its checkbox to enable it.
