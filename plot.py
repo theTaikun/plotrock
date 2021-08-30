@@ -67,10 +67,10 @@ class NewPlot:
         if self.obj is None:
             print("no class obj")
             self.create_obj()
+            self.create_curve(self.pos_list)
             if(self.has_headers):
                 print("x-axis: {}, y-axis: {}".format(self.headers[0], self.headers[1]))
                 self.create_axis_text()
-            self.create_curve(self.pos_list)
         else:
             print("class obj found: {}".format(self.obj))
             self.update_curve()
@@ -79,20 +79,24 @@ class NewPlot:
 
     def create_axis_text(self):
         xaxis_crv = bpy.data.curves.new(type="FONT",name="xAxisCrv")
-        xaxis_crv.offset_x = 2
-        xaxis_crv.offset_y = -1
+        xaxis_crv.align_x = "CENTER"
+        xaxis_crv.align_y = "CENTER"
         xaxis_obj = bpy.data.objects.new("xAxisObj", xaxis_crv)
         xaxis_obj.data.body = self.headers[0]
         xaxis_obj.parent = self.root
+        xaxis_obj.location[0] = self.root.plotrock_settings.max_x/2
+        xaxis_obj.location[1] = -1
         bpy.data.scenes[0].collection.objects.link(xaxis_obj)
         self.root.plotrock_settings.x_axis_label = xaxis_obj
 
         yaxis_crv = bpy.data.curves.new(type="FONT",name="yAxisCrv")
-        yaxis_crv.offset_x = -2
-        yaxis_crv.offset_y = 2
+        yaxis_crv.align_x = "CENTER"
+        yaxis_crv.align_y = "CENTER"
         yaxis_obj = bpy.data.objects.new("yAxisObj", yaxis_crv)
         yaxis_obj.data.body = self.headers[1]
         yaxis_obj.parent = self.root
+        yaxis_obj.location[0] = -2
+        yaxis_obj.location[1] = self.root.plotrock_settings.max_y/2
         bpy.data.scenes[0].collection.objects.link(yaxis_obj)
         self.root.plotrock_settings.y_axis_label = yaxis_obj
 
