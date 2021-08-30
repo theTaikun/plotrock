@@ -85,6 +85,7 @@ class NewPlot:
         xaxis_obj.data.body = self.headers[0]
         xaxis_obj.parent = self.root
         bpy.data.scenes[0].collection.objects.link(xaxis_obj)
+        self.root.plotrock_settings.x_axis_label = xaxis_obj
 
         yaxis_crv = bpy.data.curves.new(type="FONT",name="yAxisCrv")
         yaxis_crv.offset_x = -2
@@ -93,6 +94,7 @@ class NewPlot:
         yaxis_obj.data.body = self.headers[1]
         yaxis_obj.parent = self.root
         bpy.data.scenes[0].collection.objects.link(yaxis_obj)
+        self.root.plotrock_settings.y_axis_label = yaxis_obj
 
     def create_curve(self, coords_list):
         print("create curve")

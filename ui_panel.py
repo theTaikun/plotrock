@@ -1,4 +1,5 @@
 import bpy
+from . import plot # to use plot.findRoot()
 
 
 class OperatorPanel(bpy.types.Panel):
@@ -108,16 +109,46 @@ class PlotPanel(bpy.types.Panel):
             layout.label(text="Select a Plot")
         return
 
+class AxisPanel(bpy.types.Panel):
+    bl_label = "Axis Settings"
+    bl_idname = "OBJECT_PT_plotrock_axis"
+    bl_space_type = 'VIEW_3D'
+    bl_region_type = 'UI'
+    bl_context = ""
+    bl_category = "RockPlot"
+
+    def draw(self, context):
+        layout = self.layout
+        obj = context.active_object
+        root = plot.findRoot(obj)
+
+        if(obj is not None and plot.findRoot(obj)):
+            #layout.label(text="Axis Label Depth")
+            #row = layout.row()
+            # Axis Label Depth
+            split = layout.split()
+            col=split.column(align=True)
+            col.label(text="X")
+            col.prop(root.plotrock_settings.x_axis_label.data, 'extrude', text="Depth")
+
+            col=split.column()
+            col.label(text="Y")
+            col.prop(root.plotrock_settings.y_axis_label.data, 'extrude', text="Depth")
+        else:
+            layout.label(text="Select an Axis")
+        return
 
 
 def register():
     bpy.utils.register_class(OperatorPanel)
     bpy.utils.register_class(PlotPanel)
+    bpy.utils.register_class(AxisPanel)
 
 
 def unregister():
     bpy.utils.unregister_class(OperatorPanel)
     bpy.utils.unregister_class(PlotPanel)
+    bpy.utils.unregister_class(AxisPanel)
 
 
 if __name__ == "__main__":
