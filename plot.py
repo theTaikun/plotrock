@@ -86,6 +86,7 @@ class NewPlot:
         xaxis_obj.parent = self.root
         xaxis_obj.location[0] = self.root.plotrock_settings.max_x/2
         xaxis_obj.location[1] = -1
+        xaxis_obj.lock_location[2] = True
         bpy.data.scenes[0].collection.objects.link(xaxis_obj)
         self.root.plotrock_settings.x_axis_label = xaxis_obj
 
@@ -97,6 +98,7 @@ class NewPlot:
         yaxis_obj.parent = self.root
         yaxis_obj.location[0] = -2
         yaxis_obj.location[1] = self.root.plotrock_settings.max_y/2
+        yaxis_obj.lock_location[2] = True
         bpy.data.scenes[0].collection.objects.link(yaxis_obj)
         self.root.plotrock_settings.y_axis_label = yaxis_obj
 
