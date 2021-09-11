@@ -131,18 +131,30 @@ class AxisPanel(bpy.types.Panel):
             col.label(text=None)
             col.label(text="Depth")
             col.label(text="Size")
-            col.label(text="Min")
+            col.label(text="Use Min")
 
             col=split.column(align=True)
             col.label(text="X")
             col.prop(root.plotrock_settings.x_axis_label.data, 'extrude', text="")
             col.prop(root.plotrock_settings.x_axis_label.data, 'size', text="")
-            col.prop(root.plotrock_settings, 'min_x', text="")
+            col.prop(root.plotrock_settings, 'use_min_x', text="")
 
             col=split.column()
             col.label(text="Y")
             col.prop(root.plotrock_settings.y_axis_label.data, 'extrude', text="")
             col.prop(root.plotrock_settings.y_axis_label.data, 'size', text="")
+            col.prop(root.plotrock_settings, 'use_min_y', text="")
+
+            split = layout.split()
+            col=split.column()
+            col=split.column()
+            if(not root.plotrock_settings.use_min_x):
+                col.enabled=False
+            col.prop(root.plotrock_settings, 'min_x', text="")
+
+            col=split.column()
+            if(not root.plotrock_settings.use_min_y):
+                col.enabled=False
             col.prop(root.plotrock_settings, 'min_y', text="")
 
         else:

@@ -80,16 +80,27 @@ class NewPlot:
 
     def center_curve(self, curv_obj):
         driver_x = curv_obj.driver_add("location", 0)
+        driver_x.driver.expression = "-offset if use_min_x else 0"
         var = driver_x.driver.variables.new()
-        driver_x.driver.expression = "-var"
+        var.name = "offset"
         var.targets[0].id = self.root
         var.targets[0].data_path = "plotrock_settings.min_x"
+        var2 = driver_x.driver.variables.new()
+        var2.name = "use_min_x"
+        var2.targets[0].id = self.root
+        var2.targets[0].data_path = "plotrock_settings.use_min_x"
 
         driver_y = curv_obj.driver_add("location", 1)
+        driver_y.driver.expression = "-offset if use_min_y else 0"
         var = driver_y.driver.variables.new()
-        driver_y.driver.expression = "-var"
+        var.name = "offset"
         var.targets[0].id = self.root
         var.targets[0].data_path = "plotrock_settings.min_y"
+        var2 = driver_y.driver.variables.new()
+        var2.name = "use_min_y"
+        var2.targets[0].id = self.root
+        var2.targets[0].data_path = "plotrock_settings.use_min_y"
+
 
     def create_axis_text(self):
         xaxis_crv = bpy.data.curves.new(type="FONT",name="xAxisCrv")
