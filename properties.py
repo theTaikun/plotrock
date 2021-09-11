@@ -15,6 +15,8 @@ type_property= bpy.props.EnumProperty(
 class RootSettings(bpy.types.PropertyGroup):
         max_x: bpy.props.FloatProperty()
         max_y: bpy.props.FloatProperty()
+        x_axis_label: bpy.props.PointerProperty(type=bpy.types.Object)
+        y_axis_label: bpy.props.PointerProperty(type=bpy.types.Object)
 
 csv_file = bpy.props.PointerProperty(type=bpy.types.Text)
 
