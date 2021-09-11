@@ -13,6 +13,10 @@ type_property= bpy.props.EnumProperty(
     )
 
 class RootSettings(bpy.types.PropertyGroup):
+        use_min_x: bpy.props.BoolProperty()
+        use_min_y: bpy.props.BoolProperty()
+        min_x: bpy.props.FloatProperty()
+        min_y: bpy.props.FloatProperty()
         max_x: bpy.props.FloatProperty()
         max_y: bpy.props.FloatProperty()
         x_axis_label: bpy.props.PointerProperty(type=bpy.types.Object)

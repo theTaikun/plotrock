@@ -68,6 +68,7 @@ class NewPlot:
             print("no class obj")
             self.create_obj()
             self.create_curve(self.pos_list)
+            self.center_curve(self.obj)
             if(self.has_headers):
                 print("x-axis: {}, y-axis: {}".format(self.headers[0], self.headers[1]))
                 self.create_axis_text()
@@ -76,6 +77,30 @@ class NewPlot:
             self.update_curve()
 
         return {'FINISHED'}
+
+    def center_curve(self, curv_obj):
+        driver_x = curv_obj.driver_add("location", 0)
+        driver_x.driver.expression = "-offset if use_min_x else 0"
+        var = driver_x.driver.variables.new()
+        var.name = "offset"
+        var.targets[0].id = self.root
+        var.targets[0].data_path = "plotrock_settings.min_x"
+        var2 = driver_x.driver.variables.new()
+        var2.name = "use_min_x"
+        var2.targets[0].id = self.root
+        var2.targets[0].data_path = "plotrock_settings.use_min_x"
+
+        driver_y = curv_obj.driver_add("location", 1)
+        driver_y.driver.expression = "-offset if use_min_y else 0"
+        var = driver_y.driver.variables.new()
+        var.name = "offset"
+        var.targets[0].id = self.root
+        var.targets[0].data_path = "plotrock_settings.min_y"
+        var2 = driver_y.driver.variables.new()
+        var2.name = "use_min_y"
+        var2.targets[0].id = self.root
+        var2.targets[0].data_path = "plotrock_settings.use_min_y"
+
 
     def create_axis_text(self):
         xaxis_crv = bpy.data.curves.new(type="FONT",name="xAxisCrv")
@@ -107,13 +132,17 @@ class NewPlot:
         spline = self.spline
         spline.points.add(len(coords_list) -1 )
         for i, val in enumerate(coords_list):
-            spline.points[i].co = (val + [0.0] + [1.0])
+            spline.points[i].co = (val + [0.0] + [1.0]) # where val is [x, y], followed by + [z] + [w]
 
         # Size of Empty same for all axis => set as max of x and y value
+        min_x = min(coords_list)[0]
+        min_y = min(coords_list, key=lambda x: x[1])[1]
         max_x = max(coords_list)[0] # Max of nested list checks first val
         max_y = max(coords_list, key=lambda x: x[1])[1] # Funct to check max by second val, and return that val
         self.root.empty_display_size = max(max_x, max_y) # compares the 2 maxes
 
+        self.root.plotrock_settings.min_x = min_x
+        self.root.plotrock_settings.min_y = min_y
         self.root.plotrock_settings.max_x = max_x
         self.root.plotrock_settings.max_y = max_y
         self.crv.plotrock_csv = self.csv_textdata
@@ -133,7 +162,7 @@ class NewPlot:
         spline.use_smooth = False
         self.crv = crv
         self.spline = spline
-        self.obj = bpy.data.objects.new('object_name', crv)
+        self.obj = bpy.data.objects.new('plot', crv)
         self.obj.location[2] = 0.5
         self.obj.parent = self.root
         bpy.data.scenes[0].collection.objects.link(self.obj)
@@ -273,10 +302,14 @@ class UpdatePlot(bpy.types.Operator):
     def update_axis(self):
         coords_list = self.pos_list
         # Size of Empty same for all axis => set as max of x and y value
+        min_x = min(coords_list)[0] # Max of nested list checks first val
+        min_y = min(coords_list, key=lambda x: x[1])[1] # Funct to check max by second val, and return that val
         max_x = max(coords_list)[0] # Max of nested list checks first val
         max_y = max(coords_list, key=lambda x: x[1])[1] # Funct to check max by second val, and return that val
         self.root.empty_display_size = max(max_x, max_y) # compares the 2 maxes
 
+        self.root.plotrock_settings.min_x = min_x
+        self.root.plotrock_settings.min_y = min_y
         self.root.plotrock_settings.max_x = max_x
         self.root.plotrock_settings.max_y = max_y
 
